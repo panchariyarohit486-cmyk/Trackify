@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Terms and Conditions — Trackify{% endblock %}
+
+{% block content %}
+<div class="policy-section">
+    <div class="policy-header">
+        <span class="policy-badge">Legal</span>
+        <h1 class="policy-title">Terms and Conditions</h1>
+        <p class="policy-date">Last updated: June 2026</p>
+    </div>
+
+    <div class="policy-body">
+        <p>Welcome to Trackify. By accessing or using our service, you agree to be bound by these Terms and Conditions. Please read them carefully before using the application.</p>
+
+        <h2>1. Acceptance of Terms</h2>
+        <p>By creating an account or using Trackify in any way, you confirm that you are at least 13 years of age and agree to these Terms. If you do not agree, please do not use the service.</p>
+
+        <h2>2. Use of the Service</h2>
+        <p>Trackify is a personal finance tracking tool. You agree to use it only for lawful purposes and in a way that does not infringe the rights of others. You must not:</p>
+        <ul>
+            <li>Share your account credentials with others</li>
+            <li>Attempt to gain unauthorized access to any part of the service</li>
+            <li>Use the service to store false or misleading financial information with intent to defraud</li>
+            <li>Reverse-engineer, decompile, or copy any part of the application</li>
+        </ul>
+
+        <h2>3. Your Account</h2>
+        <p>You are responsible for maintaining the confidentiality of your account password and for all activity that occurs under your account. Notify us immediately if you suspect unauthorized use of your account.</p>
+
+        <h2>4. Data and Privacy</h2>
+        <p>Your use of Trackify is also governed by our <a href="{{ url_for('privacy') }}">Privacy Policy</a>, which is incorporated into these Terms by reference. We store your expense data solely to provide the service to you.</p>
+
+        <h2>5. Intellectual Property</h2>
+        <p>All content, design, and code within Trackify is the property of its developers. You are granted a limited, non-exclusive, non-transferable license to use the application for personal, non-commercial purposes.</p>
+
+        <h2>6. Disclaimer of Warranties</h2>
+        <p>Trackify is provided "as is" without warranties of any kind. We do not guarantee that the service will be uninterrupted, error-free, or suitable for your specific financial needs. This application is not a substitute for professional financial advice.</p>
+
+        <h2>7. Limitation of Liability</h2>
+        <p>To the maximum extent permitted by law, Trackify and its developers shall not be liable for any indirect, incidental, or consequential damages arising from your use of the service.</p>
+
+        <h2>8. Changes to Terms</h2>
+        <p>We may update these Terms from time to time. Continued use of Trackify after changes are posted constitutes your acceptance of the revised Terms.</p>
+
+        <h2>9. Contact</h2>
+        <p>If you have questions about these Terms, please reach out to us through the application's support channel.</p>
+    </div>
+</div>
+{% endblock %}
