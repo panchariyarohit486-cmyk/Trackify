@@ -109,8 +109,40 @@ def logout():
 
 
 @app.route("/profile")
+@login_required
 def profile():
-    return "Profile page — coming in Step 4"
+    user = {
+        "name": session.get("user_name", "Demo User"),
+        "email": "demo@trackify.com",
+        "member_since": "June 1, 2026",
+        "initials": "".join(w[0].upper() for w in session.get("user_name", "D U").split()[:2]),
+    }
+    stats = {
+        "total_spent": "₹330.24",
+        "transaction_count": 8,
+        "top_category": "Bills",
+    }
+    transactions = [
+        {"date": "Jun 20", "description": "Grocery run",   "category": "Food",          "amount": "₹18.75"},
+        {"date": "Jun 18", "description": "Miscellaneous", "category": "Other",         "amount": "₹8.00"},
+        {"date": "Jun 15", "description": "New shoes",     "category": "Shopping",      "amount": "₹89.99"},
+        {"date": "Jun 12", "description": "Movie tickets", "category": "Entertainment", "amount": "₹25.00"},
+        {"date": "Jun 10", "description": "Pharmacy",      "category": "Health",        "amount": "₹30.00"},
+        {"date": "Jun 07", "description": "Electricity",   "category": "Bills",         "amount": "₹120.00"},
+        {"date": "Jun 05", "description": "Bus pass",      "category": "Transport",     "amount": "₹45.00"},
+        {"date": "Jun 01", "description": "Lunch at cafe", "category": "Food",          "amount": "₹12.50"},
+    ]
+    categories = [
+        {"name": "Bills",         "amount": "₹120.00", "pct": 36},
+        {"name": "Shopping",      "amount": "₹89.99",  "pct": 27},
+        {"name": "Transport",     "amount": "₹45.00",  "pct": 14},
+        {"name": "Food",          "amount": "₹31.25",  "pct": 9},
+        {"name": "Health",        "amount": "₹30.00",  "pct": 9},
+        {"name": "Entertainment", "amount": "₹25.00",  "pct": 8},
+        {"name": "Other",         "amount": "₹8.00",   "pct": 2},
+    ]
+    return render_template("profile.html", user=user, stats=stats,
+                           transactions=transactions, categories=categories)
 
 
 @app.route("/expenses/add")

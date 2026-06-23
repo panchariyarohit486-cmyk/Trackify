@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Profile — Trackify{% endblock %}
+
+{% block head %}
+<script src="https://unpkg.com/lucide@latest"></script>
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+
+  <!-- User info card -->
+  <div class="profile-header-card">
+    <div class="profile-avatar">{{ user.initials }}</div>
+    <div class="profile-header-info">
+      <h1 class="profile-name">{{ user.name }}</h1>
+      <p class="profile-email">
+        <i data-lucide="mail"></i>
+        {{ user.email }}
+      </p>
+      <p class="profile-since">
+        <i data-lucide="calendar"></i>
+        Member since {{ user.member_since }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Summary stats -->
+  <h2 class="profile-section-title">
+    <i data-lucide="bar-chart-2"></i>
+    Overview
+  </h2>
+  <div class="profile-stats-grid">
+    <div class="stat-card profile-stat-card">
+      <span class="stat-label">Total Spent</span>
+      <span class="stat-value">{{ stats.total_spent }}</span>
+      <span class="stat-change neutral">This month</span>
+    </div>
+    <div class="stat-card profile-stat-card">
+      <span class="stat-label">Transactions</span>
+      <span class="stat-value">{{ stats.transaction_count }}</span>
+      <span class="stat-change neutral">This month</span>
+    </div>
+    <div class="stat-card profile-stat-card">
+      <span class="stat-label">Top Category</span>
+      <span class="stat-value profile-stat-category">{{ stats.top_category }}</span>
+      <span class="stat-change neutral">Highest spend</span>
+    </div>
+  </div>
+
+  <!-- Transaction history -->
+  <h2 class="profile-section-title">
+    <i data-lucide="receipt"></i>
+    Recent Transactions
+  </h2>
+  <div class="profile-table-wrap">
+    <table class="profile-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Category</th>
+          <th class="amount-col">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tx in transactions %}
+        <tr>
+          <td class="tx-date">{{ tx.date }}</td>
+          <td class="tx-desc">{{ tx.description }}</td>
+          <td>
+            <span class="badge badge-{{ tx.category | lower | replace(' ', '-') }}">
+              {{ tx.category }}
+            </span>
+          </td>
+          <td class="amount-col tx-amount">{{ tx.amount }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Category breakdown -->
+  <h2 class="profile-section-title">
+    <i data-lucide="pie-chart"></i>
+    Category Breakdown
+  </h2>
+  <div class="profile-breakdown">
+    {% for cat in categories %}
+    <div class="breakdown-row">
+      <div class="breakdown-meta">
+        <span class="breakdown-name">
+          <span class="badge badge-{{ cat.name | lower | replace(' ', '-') }}">{{ cat.name }}</span>
+        </span>
+        <span class="breakdown-amount">{{ cat.amount }}</span>
+      </div>
+      <div class="preview-bar-track">
+        <div class="preview-bar breakdown-bar breakdown-bar-{{ cat.name | lower | replace(' ', '-') }}"
+             style="width: {{ cat.pct }}%"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>lucide.createIcons();</script>
+{% endblock %}
