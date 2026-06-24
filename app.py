@@ -2,10 +2,10 @@ import os
 import sqlite3
 import functools
 from datetime import datetime, date
-from flask import Flask, render_template, request, redirect, url_for, flash, get_flashed_messages, session
+from flask import Flask, render_template, request, redirect, url_for, flash, get_flashed_messages, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from database.db import get_db, init_db, seed_db
-from database.queries import get_user_by_id, get_summary_stats, get_recent_transactions, get_category_breakdown
+from database.queries import get_user_by_id, get_summary_stats, get_recent_transactions, get_category_breakdown, insert_expense
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
@@ -27,6 +27,9 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated
+
+
+VALID_CATEGORIES = ["Food", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Other"]
 
 
 # ------------------------------------------------------------------ #
@@ -181,6 +184,7 @@ def profile():
         stats=stats,
         transactions=transactions,
         categories=categories,
+        valid_categories=VALID_CATEGORIES,
         date_from=date_from,
         date_to=date_to,
         active_preset=active_preset,
@@ -193,9 +197,48 @@ def profile():
     )
 
 
-@app.route("/expenses/add")
+@app.route("/expenses/add", methods=["GET", "POST"])
+@login_required
 def add_expense():
-    return "Add expense — coming in Step 7"
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+    if request.method == "GET":
+        return render_template("add.html", today=date.today().isoformat(), categories=VALID_CATEGORIES)
+
+    raw_amount      = request.form.get("amount", "")
+    raw_category    = request.form.get("category", "")
+    raw_date        = request.form.get("date", "")
+    raw_description = request.form.get("description", "").strip()[:500]
+
+    def bad(msg):
+        if is_ajax:
+            return jsonify({"error": msg})
+        return render_template("add.html", error=msg, form=request.form, categories=VALID_CATEGORIES)
+
+    try:
+        amount = float(raw_amount)
+        if amount <= 0:
+            raise ValueError
+    except ValueError:
+        return bad("Amount must be a positive number.")
+
+    if raw_category not in VALID_CATEGORIES:
+        return bad("Please select a valid category.")
+
+    try:
+        datetime.strptime(raw_date, "%Y-%m-%d")
+    except ValueError:
+        return bad("Please enter a valid date (YYYY-MM-DD).")
+
+    description = raw_description or None
+
+    insert_expense(session["user_id"], amount, raw_category, raw_date, description)
+
+    if is_ajax:
+        return jsonify({"success": True})
+
+    flash("Expense added.")
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/edit")
