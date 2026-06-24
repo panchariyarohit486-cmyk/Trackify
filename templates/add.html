@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Add Expense — Trackify{% endblock %}
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+{% endblock %}
+{% block content %}
+<div class="add-expense-page">
+
+  <div class="add-expense-header">
+    <h1 class="add-expense-title">Add Expense</h1>
+    <p class="add-expense-subtitle">Record a new transaction</p>
+  </div>
+
+  <div class="add-expense-card">
+
+    {% if error %}
+    <p class="add-expense-error">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST">
+
+      <div class="ae-field">
+        <label class="ae-label" for="amount">Amount (₹)</label>
+        <input
+          type="number"
+          id="amount"
+          name="amount"
+          class="ae-input"
+          step="0.01"
+          min="0.01"
+          value="{{ form.amount if form else '' }}"
+          required
+        >
+      </div>
+
+      <div class="ae-field">
+        <label class="ae-label" for="category">Category</label>
+        <div class="ae-select-wrap">
+          <select id="category" name="category" class="ae-input ae-select" required>
+            <option value="" disabled {% if not form or not form.category %}selected{% endif %}>Select a category</option>
+            {% for cat in categories %}
+            <option value="{{ cat }}" {% if form and form.category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+          <span class="ae-select-arrow">&#8964;</span>
+        </div>
+      </div>
+
+      <div class="ae-field">
+        <label class="ae-label" for="date">Date</label>
+        <input
+          type="date"
+          id="date"
+          name="date"
+          class="ae-input"
+          value="{{ form.date if form else today }}"
+          required
+        >
+      </div>
+
+      <div class="ae-field">
+        <label class="ae-label" for="description">Description <span class="ae-optional">(optional)</span></label>
+        <textarea
+          id="description"
+          name="description"
+          class="ae-input ae-textarea"
+          placeholder="What was this for?"
+        >{{ form.description if form else '' }}</textarea>
+      </div>
+
+      <button type="submit" class="ae-submit">Save Expense</button>
+
+    </form>
+  </div>
+
+  <a href="{{ url_for('profile') }}" class="ae-back-link">&#8592; Back to profile</a>
+
+</div>
+{% endblock %}

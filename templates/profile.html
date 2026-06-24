@@ -3,7 +3,6 @@
 {% block title %}Profile — Trackify{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
 <script src="https://unpkg.com/lucide@latest"></script>
 {% endblock %}
 
@@ -78,10 +77,15 @@
 
     <!-- Transactions -->
     <div class="profile-transactions-col">
-      <h2 class="profile-section-title">
-        <i data-lucide="receipt"></i>
-        Recent Transactions
-      </h2>
+      <div class="profile-section-header">
+        <h2 class="profile-section-title">
+          <i data-lucide="receipt"></i>
+          Recent Transactions
+        </h2>
+        <button class="btn-primary btn-add-expense" id="open-add-expense-modal">
+          <i data-lucide="plus"></i> Add Expense
+        </button>
+      </div>
       <div class="profile-table-wrap">
         <table class="profile-table">
           <thead>
@@ -141,8 +145,113 @@
   </div>
 
 </div>
+
+<!-- Add Expense Modal -->
+<div class="ae-modal-overlay" id="add-expense-overlay">
+  <div class="ae-modal-card" role="dialog" aria-modal="true" aria-labelledby="ae-modal-title">
+    <div class="ae-modal-header">
+      <h3 class="ae-modal-title" id="ae-modal-title">Add Expense</h3>
+      <button class="ae-modal-close-btn" id="modal-close-btn" aria-label="Close">&times;</button>
+    </div>
+    <p class="ae-modal-error" id="modal-error"></p>
+    <form id="add-expense-form">
+      <div class="ae-modal-form-group">
+        <label class="ae-modal-label" for="m-amount">Amount (₹)</label>
+        <input type="number" id="m-amount" name="amount" step="0.01" min="0.01" class="form-input" required>
+      </div>
+      <div class="ae-modal-form-group">
+        <label class="ae-modal-label" for="m-category">Category</label>
+        <select id="m-category" name="category" class="form-input" required>
+          <option value="" disabled selected>Select a category</option>
+          {% for cat in valid_categories %}
+          <option value="{{ cat }}">{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="ae-modal-form-group">
+        <label class="ae-modal-label" for="m-date">Date</label>
+        <input type="date" id="m-date" name="date" class="form-input" required>
+      </div>
+      <div class="ae-modal-form-group">
+        <label class="ae-modal-label" for="m-description">Description <span class="ae-modal-optional">(optional)</span></label>
+        <textarea id="m-description" name="description" class="form-input ae-modal-textarea" placeholder="What was this for?"></textarea>
+      </div>
+      <div class="ae-modal-actions">
+        <button type="button" class="btn-ghost" id="modal-cancel-btn">Cancel</button>
+        <button type="submit" class="btn-primary">Add Expense</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>lucide.createIcons();</script>
+<script>
+(function () {
+  var overlay   = document.getElementById('add-expense-overlay');
+  var openBtn   = document.getElementById('open-add-expense-modal');
+  var closeBtn  = document.getElementById('modal-close-btn');
+  var cancelBtn = document.getElementById('modal-cancel-btn');
+  var form      = document.getElementById('add-expense-form');
+  var errorEl   = document.getElementById('modal-error');
+  var dateInput = document.getElementById('m-date');
+
+  function openModal() {
+    form.reset();
+    dateInput.value = new Date().toISOString().slice(0, 10);
+    errorEl.textContent = '';
+    errorEl.style.display = 'none';
+    overlay.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    overlay.classList.remove('is-open');
+    document.body.style.overflow = '';
+  }
+
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) closeModal();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var submitBtn = form.querySelector('[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving…';
+
+    fetch('/expenses/add', {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      body: new FormData(form)
+    })
+    .then(function (res) { return res.json(); })
+    .then(function (json) {
+      if (json.success) {
+        closeModal();
+        window.location.reload();
+      } else {
+        errorEl.textContent = json.error;
+        errorEl.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Add Expense';
+      }
+    })
+    .catch(function () {
+      errorEl.textContent = 'Something went wrong. Please try again.';
+      errorEl.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Add Expense';
+    });
+  });
+})();
+</script>
 {% endblock %}
