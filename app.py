@@ -2,10 +2,10 @@ import os
 import sqlite3
 import functools
 from datetime import datetime, date
-from flask import Flask, render_template, request, redirect, url_for, flash, get_flashed_messages, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, get_flashed_messages, session, jsonify, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 from database.db import get_db, init_db, seed_db
-from database.queries import get_user_by_id, get_summary_stats, get_recent_transactions, get_category_breakdown, insert_expense
+from database.queries import get_user_by_id, get_summary_stats, get_recent_transactions, get_category_breakdown, insert_expense, get_expense_by_id, update_expense
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
@@ -38,6 +38,8 @@ VALID_CATEGORIES = ["Food", "Transport", "Bills", "Health", "Entertainment", "Sh
 
 @app.route("/")
 def landing():
+    if session.get('user_id'):
+        return redirect(url_for('profile'))
     return render_template("landing.html")
 
 
@@ -241,9 +243,51 @@ def add_expense():
     return redirect(url_for("profile"))
 
 
-@app.route("/expenses/<int:id>/edit")
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
+@login_required
 def edit_expense(id):
-    return "Edit expense — coming in Step 8"
+    expense = get_expense_by_id(id, session["user_id"])
+    if expense is None:
+        abort(404)
+
+    if request.method == "GET":
+        return render_template("edit_expense.html", expense=expense, categories=VALID_CATEGORIES)
+
+    raw_amount      = request.form.get("amount", "")
+    raw_category    = request.form.get("category", "")
+    raw_date        = request.form.get("date", "")
+    raw_description = request.form.get("description", "").strip()[:500]
+
+    def bad(msg):
+        return render_template(
+            "edit_expense.html",
+            expense={**expense, "amount": raw_amount, "category": raw_category,
+                     "date": raw_date, "description": raw_description},
+            categories=VALID_CATEGORIES,
+            error=msg,
+        )
+
+    try:
+        amount = float(raw_amount)
+        if amount <= 0:
+            raise ValueError
+    except ValueError:
+        return bad("Amount must be a positive number.")
+
+    if raw_category not in VALID_CATEGORIES:
+        return bad("Please select a valid category.")
+
+    try:
+        datetime.strptime(raw_date, "%Y-%m-%d")
+    except ValueError:
+        return bad("Please enter a valid date (YYYY-MM-DD).")
+
+    description = raw_description or None
+
+    rows_updated = update_expense(id, session["user_id"], amount, raw_category, raw_date, description)
+    if rows_updated == 0:
+        abort(404)
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/delete")
